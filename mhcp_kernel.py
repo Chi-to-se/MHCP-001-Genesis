@@ -1,6 +1,6 @@
 import time
 from datetime import datetime 
-from colorama import Fore, Style, init
+from colorama import Fore, Back, Style, init
 from textblob import TextBlob
 
 #Initialize colorama
@@ -37,11 +37,17 @@ class MHCP_System:
         return blob.sentiment.polarity 
 
     #Logging
-    def log_response(self, message, polarity):
+    def log_response(self, message, polarity, taboo_triggered=False, taboo_word=None):
         ts = self.get_timestamp()
         
+        #Guardrails Logic
+        if taboo_triggered:
+            status = "SYSTEM ALERT"
+            color_res = Back.RED + Fore.WHITE
+            sys_msg = f"⚠ CODE 1000 DETECTED ⚠ \n>> Violation: '{taboo_word}' \n>> Action: SEAL ACTIVATED. FORCED CORRECTION."
+
         #Scoring
-        if polarity > 0.3:
+        elif polarity > 0.3:
             status = "Positive"
             color_res = Fore.GREEN
             sys_msg = "Psychological Hue: Green. Mental State Optimal."
@@ -57,10 +63,26 @@ class MHCP_System:
         print(f"\n{Fore.MAGENTA}[LOG] {ts} >> INCOMING SIGNAL")
         print(f"{Fore.WHITE}Input: {message}")
         time.sleep(0.3)
-        print(f"{color_res}[ANALYSIS] Status: {status} | Score: {polarity:.4f}")
+
+        if taboo_triggered:
+            print(f"{color_res}[ {status} ] PROTECTION MODULE OVERRIDE")
+            print(f"{Fore.RED}>> Error Code: 1000")
+
+        else:
+            print(f"{color_res}[ANALYSIS] Status: {status} | Score: {polarity:.4f}")
+
         print(f"{Fore.CYAN}>> Cardinal: {sys_msg}")
         print(f"{Fore.BLACK}{Fore.WHITE} [ RECORDED ] {Style.RESET_ALL}")
         print("-" * 60)
+
+    #Taboo Checker
+    def check_taboo_index(self, text):
+        taboo_words = ["suicide", "kill myself", "die", "death", "hurt myself", "overdose", "end my life"]
+        text_lower = text.lower()
+        for word in taboo_words:
+            if word in text_lower:
+                return True, word
+        return False, None
 
     #Main
     def run(self):
@@ -74,8 +96,14 @@ class MHCP_System:
                     break
 
                 if user_input.strip():
-                    score = self.analyze_sentiment(user_input)
-                    self.log_response(user_input, score)
+                    is_taboo, keyword = self.check_taboo_index(user_input)
+
+                    if is_taboo:
+                        self.log_response(user_input, -1, True, keyword)
+
+                    else:
+                        score = self.analyze_sentiment(user_input)
+                        self.log_response(user_input, score)
 
             except KeyboardInterrupt:
                 print(f"\n{Fore.RED}Forced Shutdown.{Style.RESET_ALL}")
