@@ -2,6 +2,9 @@ import time
 from datetime import datetime 
 from colorama import Fore, Back, Style, init
 from textblob import TextBlob
+import csv
+import os
+
 
 #Initialize colorama
 init(autoreset=True)
@@ -14,12 +17,26 @@ class MHCP_System:
         self.system_name = "MHCP-001"
         self.version = "0.1.0 (Prototype)"
         self.user_name =  "Admin"
+        self.memory_file = "mhcp_memory_log.csv"
+
+
 
         #Boot System
         print(f"{Fore.CYAN}Initializing {self.system_name} Kernel...{Style.RESET_ALL}")
         time.sleep(0.5)
         print(f"{Fore.CYAN}Loading Language Modules... [TextBlob]{Style.RESET_ALL}")
         time.sleep(0.5)
+        print(f"{Fore.MAGENTA}Mounting Memory Unit... [{self.memory_file}]{Style.RESET_ALL}")
+        if not os.path.exists(self.memory_file):
+            print(f"{Fore.MAGENTA}I dont't have any Memory Unit. [{self.memory_file}]{Style.RESET_ALL}")
+            time.sleep(0.5)
+            print(f"{Fore.MAGENTA}Creating new one... [{self.memory_file}]{Style.RESET_ALL}")
+            time.sleep(1.0)
+            #Create New One
+            with open(self.memory_file, mode="w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Timestamp", "User_Input", "Sentiment_Score", "Status", "System_Message"])
+
         print(f"{Fore.GREEN}System Online. Version: {self.version}{Style.RESET_ALL}")
         print("-" * 60)
 
@@ -72,8 +89,24 @@ class MHCP_System:
             print(f"{color_res}[ANALYSIS] Status: {status} | Score: {polarity:.4f}")
 
         print(f"{Fore.CYAN}>> Cardinal: {sys_msg}")
+
+        #Record
+        self.save_to_crystal(message, polarity, status, sys_msg)
         print(f"{Fore.BLACK}{Fore.WHITE} [ RECORDED ] {Style.RESET_ALL}")
         print("-" * 60)
+
+    #Save to Memory(.csv)
+    def save_to_crystal(self, text, score, status, sys_msg):
+        """
+        Save memory to csv file
+        """
+
+        try:
+            with open(self.memory_file, mode="a", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                writer.writerow([[self.get_timestamp(), text, score, status, sys_msg]])
+        except Exception as e:
+            print(f"{Fore.RED}[ERROR] Memory Write Failed: {e}{Style.RESET_ALL}")
 
     #Taboo Checker
     def check_taboo_index(self, text):
