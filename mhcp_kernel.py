@@ -37,6 +37,8 @@ class MHCP_System:
                 writer = csv.writer(file)
                 writer.writerow(["Timestamp", "User_Input", "Sentiment_Score", "Status", "System_Message"])
 
+        self.recall_memory()
+        time.sleep(1.0)
         print(f"{Fore.GREEN}System Online. Version: {self.version}{Style.RESET_ALL}")
         print("-" * 60)
 
@@ -104,9 +106,56 @@ class MHCP_System:
         try:
             with open(self.memory_file, mode="a", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
-                writer.writerow([[self.get_timestamp(), text, score, status, sys_msg]])
+                writer.writerow([self.get_timestamp(), text, score, status, sys_msg])
         except Exception as e:
             print(f"{Fore.RED}[ERROR] Memory Write Failed: {e}{Style.RESET_ALL}")
+
+    #Read Memory
+    def recall_memory(self):
+        """
+        Read memory in the last line of csv file
+        """
+
+        #If file already open then dont reopen
+        if not os.path.exists(self.memory_file):
+            return
+        
+        #Open and read file
+        try:
+            with open(self.memory_file, mode="r", encoding="utf-8") as file:
+                reader = list(csv.reader(file))
+
+                #Check If don't only have a Header
+                if len(reader) > 1:
+                    #Read last line
+                    last_log = reader[-1]
+
+                    #Decompose last line
+                    #This format self.get_timestamp(), text, score, status, sys_msg
+                    last_ts = last_log[0]
+                    last_input = last_log[1]
+                    try:
+                        last_score = float(last_log[2])
+                    except ValueError:
+                        last_score = 0.0
+                    last_status = last_log[3]
+
+                    print(f"\n{Fore.MAGENTA}>> Syncing with previous session ({last_ts})...")
+
+                    #Rule Based Greetings
+                    if "CODE 1000" in last_status or last_score <= -0.5:
+                        print(f"{Fore.RED}>> Yui: Welcome back... I was worried about you based on our last talk.")
+                        print(f"{Fore.RED}>> Yui: You said: '{last_input}'. Are you feeling better now?")
+                    elif last_score >= 0.5:
+                        print(f"{Fore.GREEN}>> Yui: Welcome back! You seemed happy last time. Let's keep that energy up!")
+                        print(f"{Fore.GREEN}>> Context: '{last_input}'")
+                    else:
+                        print(f"{Fore.CYAN}>> Yui: Welcome back, {self.user_name}. Ready to continue?")
+
+                    print("-" * 60)
+        
+        except Exception as e:
+            print(f"{Fore.RED}[Memory Read Error] {e}{Style.RESET_ALL}")
 
     #Taboo Checker
     def check_taboo_index(self, text):

@@ -1,2 +1,3 @@
 Timestamp,User_Input,Sentiment_Score,Status,System_Message
-"['2025-12-04 17:54:10', ""I Think I'am happy"", 0.8, 'Positive', 'Psychological Hue: Green. Mental State Optimal.']"
+2025-12-04 18:45:27,I want to eat pancake,0.0,Neutral,Psychological Hue: Grey. State Stable.
+2025-12-04 18:45:37,I very happy today,1.0,Positive,Psychological Hue: Green. Mental State Optimal.
