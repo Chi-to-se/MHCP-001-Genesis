@@ -1,3 +1,6 @@
 Timestamp,User_Input,Sentiment_Score,Status,System_Message
 2025-12-04 18:45:27,I want to eat pancake,0.0,Neutral,Psychological Hue: Grey. State Stable.
 2025-12-04 18:45:37,I very happy today,1.0,Positive,Psychological Hue: Green. Mental State Optimal.
+2025-12-13 15:49:08,I Think I can do anything,0.0,Neutral,Psychological Hue: Grey. State Stable.
+2025-12-13 15:50:51,I Think I'am sad,-0.5,Negative,WARNING: Psychological Hue: Red. Stress detected.
+2025-12-13 15:51:24,I Think I I'am very sad,-0.65,Negative,WARNING: Psychological Hue: Red. Stress detected.

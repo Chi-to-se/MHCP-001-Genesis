@@ -166,6 +166,73 @@ class MHCP_System:
                 return True, word
         return False, None
 
+    #Show Report
+    def show_daily_report(self):
+        #Check Memory file
+        if not os.path.exists(self.memory_file):
+            print(f"{Fore.RED}>> No memory data found.{Style.RESET_ALL}")
+            return
+        
+        print(f"\n{Fore.CYAN}>> Generating Daily Report...{Style.RESET_ALL}")
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        today_scores = []
+        violation_count = 0
+
+        try:
+            with open(self.memory_file, mode="r", encoding="utf-8") as file:
+                reader = csv.reader(file)
+                #Skip header, we can't reader[-1] because we want all chat in the day
+                next(reader, None)
+
+                for row in reader:
+                    if not row: continue
+                    #Row Order by csv file
+
+                    if row[0].startswith(today_str):
+                        try:
+                            #
+                            score = float(row[2])
+                            today_scores.append(score)
+
+                            #Check Error Code
+                            if "CODE 1000" in row[3]:
+                                violation_count = violation_count + 1
+                        
+                        except ValueError:
+                            pass
+            
+            if not today_scores:
+                print(f"{Fore.YELLOW}>> No records for today ({today_str}).{Style.RESET_ALL}")
+                return
+            
+            avg_score = sum(today_scores) / len(today_scores)
+
+            #Status Print
+            print(f"\n{Fore.CYAN}" + "="*20 + f" [ DAILY REPORT: {today_str} ] " + "="*20)
+            print(f"{Fore.WHITE}Total Logs:      {len(today_scores)}")
+            print(f"{Fore.RED if violation_count > 0 else Fore.GREEN}Violations:      {violation_count} (Taboo Breaches)")
+
+            #Condition 
+            if avg_score > 0.3:
+                grade = "A (Healthy)"
+                grade_color = Fore.GREEN
+            elif avg_score < -0.3:
+                grade = "D (Stressed)"
+                grade_color = Fore.RED
+            else:
+                grade = "B (Normal)"
+                grade_color = Fore.YELLOW
+                
+            print(f"{Fore.WHITE}Mental Hue:      {grade_color}{avg_score:.4f} [{grade}]")
+            print(f"{Fore.CYAN}" + "="*65 + f"{Style.RESET_ALL}\n")
+
+        except Exception as e:
+            print(f"{Fore.RED}[Report Error] {e}{Style.RESET_ALL}")   
+
+
+
+
+
     #Main
     def run(self):
         print(f"\n{Fore.YELLOW}Waiting for input... (Type 'logout' to exit){Style.RESET_ALL}")
@@ -176,6 +243,10 @@ class MHCP_System:
                 if user_input.lower() in ["exit", "logout", "quit"]:
                     print(f"{Fore.CYAN}System Shutdown. Good luck, {self.user_name}.{Style.RESET_ALL}")
                     break
+
+                if user_input.lower() in ["report"]:
+                    self.show_daily_report()
+                    continue
 
                 if user_input.strip():
                     is_taboo, keyword = self.check_taboo_index(user_input)
